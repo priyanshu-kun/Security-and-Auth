@@ -2,6 +2,7 @@ const express = require("express");
 const ejs = require("ejs");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const encrypt = require("mongoose-encryption");
 
 
 
@@ -22,7 +23,7 @@ mongoose.connect("mongodb://localhost:27017/UsersDB",{useNewUrlParser: true,useU
     }
 })
 
-const UserSchema = mongoose.Schema({
+const UserSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true
@@ -34,7 +35,14 @@ const UserSchema = mongoose.Schema({
 })
 
 
+var secret = "Thisismylittlesecret";
+UserSchema.plugin(encrypt, { secret: secret ,encryptedFields: ['password']});
+
+
+
 const User =  mongoose.model("User",UserSchema);
+
+
 
 
 app.get("/",(req,res) => {
@@ -68,7 +76,6 @@ app.post("/login",(req,res) => {
     User.findOne({email: username_},(err,doc) => {
         if(err) {
             console.error("Your are not a valid user!");
-            
         }
         if(doc) {
            if(doc.password === password) {
@@ -77,6 +84,8 @@ app.post("/login",(req,res) => {
         }
     })
 });
+
+
 
 
 app.listen(3000,(err) => {
