@@ -1,9 +1,15 @@
+require('dotenv').config()
 const express = require("express");
 const ejs = require("ejs");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const encrypt = require("mongoose-encryption");
-require('dotenv').config()
+
+// Level 2 security quite much secure
+const md5 = require("md5");
+
+// level 2 security but not much secure
+// const encrypt = require("mongoose-encryption");
+
 
 
 const app = express();
@@ -34,8 +40,8 @@ const UserSchema = new mongoose.Schema({
     }
 })
 
-
-UserSchema.plugin(encrypt, { secret: process.env.MY_SECRET ,encryptedFields: ['password']});
+// Use level 2 security
+// UserSchema.plugin(encrypt, { secret: process.env.MY_SECRET ,encryptedFields: ['password']});
 
 
 
@@ -57,7 +63,8 @@ app.get("/register",(req,res) => {
 app.post("/register",(req,res) => {
     const newUser = new User({
         email: req.body.username,
-        password: req.body.password
+        // turn password in irrevesable string using md5 function
+        password: md5(req.body.password)
     });
     newUser.save((err) => {
         if(!err) {
@@ -71,7 +78,8 @@ app.post("/register",(req,res) => {
 
 app.post("/login",(req,res) => {
     const username_ = req.body.username;
-    const password = req.body.password;
+    // convert user login passward in md5 password and compare both encrypted password to check is that valid user or not.
+    const password = md5(req.body.password);
     User.findOne({email: username_},(err,doc) => {
         if(err) {
             console.error("Your are not a valid user!");
